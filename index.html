@@ -1,47 +1,269 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Blockverse VR</title>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>ZOMBIE WAVES VR</title>
 <style>
-*{box-sizing:border-box}body{margin:0;overflow:hidden;background:#13202b;color:white;font:15px system-ui}#game{position:fixed;inset:0}
-#hud{position:fixed;top:10px;left:10px;display:flex;gap:8px;flex-wrap:wrap;pointer-events:none}.panel{background:#101820dd;border:1px solid #ffffff40;border-radius:12px;padding:9px 12px;pointer-events:auto}
-.bar{height:9px;width:140px;background:#333;border-radius:9px;overflow:hidden;margin:4px 0 7px}.fill{height:100%;width:100%;background:#4c6}#hungerFill{background:#e7a83e}
-#toolbar{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:6px;flex-wrap:wrap;justify-content:center;width:96%}
-button,select{background:#263746;color:white;border:1px solid #ffffff55;border-radius:10px;padding:10px;font:inherit;min-height:42px}
-.primary{background:#176b50}#msg{position:fixed;top:100px;left:50%;transform:translateX(-50%);background:#101820dd;padding:8px 12px;border-radius:10px}
-#intro{position:fixed;inset:0;background:#07111deF;display:grid;place-items:center;padding:20px;text-align:center}
-.card{max-width:500px;background:#172635;border:1px solid #ffffff40;border-radius:18px;padding:24px}.small{font-size:12px;opacity:.8}
-</style></head><body><div id="game"></div>
-<div id="hud"><div class="panel"><b>❤️ Health</b> <span id="hp">100</span><div class="bar"><div id="hpf" class="fill"></div></div><b>🍗 Hunger</b> <span id="food">100</span><div class="bar"><div id="foodf" class="fill" style="background:#e7a83e"></div></div><span class="small"><span id="mode">Creative</span> · <span id="realm">Overworld</span></span></div><div class="panel">🎒 <span id="chosen">Grass</span><br><span class="small">Blocks: <span id="count">24</span></span></div></div>
-<div id="msg">Welcome to Blockverse! Build a world around you.</div>
-<div id="toolbar"><select id="kind"><option value="grass">🌱 Grass</option><option value="dirt">🟫 Dirt</option><option value="stone">🪨 Stone</option><option value="wood">🪵 Wood</option><option value="leaves">🌿 Leaves</option><option value="sand">🟨 Sand</option><option value="glass">🔷 Glass</option><option value="glow">✨ Glow</option></select><button id="place" class="primary">＋ Place</button><button id="break">－ Break</button><button id="switch">Switch to Survival</button><button id="eat">Eat 🍎</button><button id="realmBtn">Visit Lava Realm</button><button id="vr" class="primary">Enter VR / Passthrough</button></div>
-<div id="intro"><div class="card"><h1>🧱 BLOCKVERSE VR</h1><p>Passthrough voxel building adventure.</p><p class="small">Original block-building prototype with a survival HUD, roaming friendly creatures and another realm. WebXR passthrough needs a compatible headset/browser and HTTPS.</p><button id="start" class="primary">Start Building</button></div></div>
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101722;color:#fff;font-family:Arial,sans-serif}
+  canvas{display:block}
+  #hud{position:fixed;top:12px;left:12px;z-index:5;display:flex;gap:8px;flex-wrap:wrap;pointer-events:none}
+  .pill{background:#101722dd;border:1px solid #6b8298;border-radius:12px;padding:8px 12px;font-weight:700}
+  #panel{position:fixed;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;background:#07111dcc;padding:16px}
+  #card{width:min(520px,94vw);max-height:90vh;overflow:auto;background:#172536;border:2px solid #6c8ca7;border-radius:18px;padding:20px;box-shadow:0 12px 40px #0009}
+  h1{margin:0 0 6px;font-size:28px;color:#a9f4c5}
+  h2{margin:16px 0 8px;font-size:18px}
+  p{line-height:1.4;color:#d6e2ec}
+  button{border:0;border-radius:12px;padding:12px 16px;margin:5px;background:#8cf0b2;color:#10251a;font-weight:800;font-size:15px;cursor:pointer}
+  button.secondary{background:#36516a;color:#fff}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .shopitem{display:flex;justify-content:space-between;gap:10px;align-items:center;border:1px solid #4b657d;border-radius:10px;padding:9px;margin:7px 0}
+  .muted{font-size:13px;color:#b7c9d8}
+  label{display:block;margin:10px 0}
+  input{width:100%;accent-color:#8cf0b2}
+  #hint{position:fixed;bottom:10px;left:10px;z-index:5;background:#101722dd;padding:8px 10px;border-radius:10px;font-size:12px}
+  #message{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:6;background:#101722dd;padding:9px 14px;border-radius:12px;font-weight:bold;display:none}
+  #crosshair{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;color:#b8ffd0;font-size:26px;pointer-events:none}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="hud">
+ <div class="pill">❤️ Health: <span id="health">100</span></div>
+ <div class="pill">💎 Gems: <span id="gems">0</span></div>
+ <div class="pill">🌊 Wave: <span id="wave">0</span></div>
+ <div class="pill">🧟 Zombies: <span id="remaining">0</span></div>
+ <div class="pill">🔫 <span id="weaponName">Pulse Blaster</span> · <span id="damage">25</span> DMG</div>
+</div>
+<div id="crosshair">+</div>
+<div id="message"></div>
+<div id="hint">Desktop: click to shoot · WASD to move · In VR: point and press trigger.</div>
+<div id="gameControls" class="hidden" style="position:fixed;bottom:12px;right:12px;z-index:7">
+ <button id="nextWave">▶ NEXT WAVE</button><button id="gameShop" class="secondary">💎 SHOP</button><button id="gameSettings" class="secondary">⚙ SETTINGS</button>
+</div>
+
+<div id="panel">
+ <div id="card">
+  <h1>🧟 ZOMBIE WAVES VR</h1>
+  <p>Defend your space from goofy, blocky zombies! Survive each wave, earn gems, and upgrade your colorful energy blasters.</p>
+  <div class="row">
+   <button id="start">▶ START GAME</button>
+   <button id="enterVR" class="secondary">🥽 ENTER VR / PASSTHROUGH</button>
+   <button id="openShop" class="secondary">💎 SHOP</button>
+   <button id="openSettings" class="secondary">⚙ SETTINGS</button>
+  </div>
+  <h2>How to play</h2>
+  <p>🖐️ <b>VR:</b> Blasters appear in your controller hands automatically. Aim at a zombie and press the <b>trigger</b> to shoot. No grip button needed.</p>
+  <p>🖱️ <b>Desktop:</b> Click to shoot; use WASD to move. You can test the game without a headset.</p>
+  <p>🧟 Each zombie starts with <b>100 HP</b>. Defeating one gives you <b>30 gems</b>. Clear a wave to unlock the next one.</p>
+  <p class="muted">Passthrough requires a compatible headset/browser and permission. If passthrough is unavailable, the game uses a normal 3D background.</p>
+  <div id="shop" class="hidden">
+   <h2>💎 Blaster Shop</h2>
+   <div id="shopItems"></div>
+   <button id="closeShop" class="secondary">CLOSE SHOP</button>
+  </div>
+  <div id="settings" class="hidden">
+   <h2>⚙ Settings</h2>
+   <label>Master volume <span id="volText">50%</span><input id="volume" type="range" min="0" max="100" value="50"></label>
+   <label><input id="haptics" type="checkbox" checked style="width:auto"> Controller vibration (when supported)</label>
+   <label><input id="showHints" type="checkbox" checked style="width:auto"> Show control hints</label>
+   <button id="closeSettings" class="secondary">CLOSE SETTINGS</button>
+  </div>
+ </div>
+</div>
+
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-const root=document.querySelector('#game'),scene=new THREE.Scene();scene.background=new THREE.Color(0x87b9d7);
-const camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,.05,100);camera.position.set(0,1.6,5);
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.xr.enabled=true;renderer.xr.setReferenceSpaceType('local-floor');root.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xffffff,0x66715c,2));const sun=new THREE.DirectionalLight(0xffffff,1.5);sun.position.set(4,9,5);scene.add(sun);
-const colors={grass:0x62a84f,dirt:0x8b5a35,stone:0x888d96,wood:0x9b693b,leaves:0x347c45,sand:0xd9c17b,glass:0x73c9df,glow:0xc4a7ff};
-const geo=new THREE.BoxGeometry(1,1,1),blocks=[];let chosen='grass',mode='Creative',realm=0,hp=100,food=100,count=24;
-function add(x,y,z,k){const m=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:colors[k],transparent:k==='glass',opacity:k==='glass'?.5:1,emissive:k==='glow'?0x514080:0}));m.position.set(x,y,z);m.userData.block=true;scene.add(m);blocks.push(m);return m}
-function remove(m){scene.remove(m);const i=blocks.indexOf(m);if(i>=0)blocks.splice(i,1)}
-for(let x=-4;x<=4;x++)for(let z=-4;z<=2;z++)add(x,-1,z,(x+z)%4===0?'dirt':'grass');
-for(const [x,z] of [[-3,-2],[3,-1]]){for(let y=0;y<3;y++)add(x,y,z,'wood');for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++)for(let y=2;y<=3;y++)add(x+dx,y,z+dz,'leaves')}
-const grid=new THREE.GridHelper(40,40,0x526a76,0x526a76);grid.position.y=-.49;scene.add(grid);
-const mobs=[];function mob(x,z,c){const g=new THREE.Group(),b=new THREE.Mesh(new THREE.BoxGeometry(.65,.65,.65),new THREE.MeshStandardMaterial({color:c}));g.add(b);g.position.set(x,-.15,z);scene.add(g);mobs.push({g,t:Math.random()*6})}mob(-2,1,0xe7d27b);mob(2,-3,0x9ad5e8);mob(0,-2,0xc6a4e8);
-const ray=new THREE.Raycaster();function target(){ray.setFromCamera(new THREE.Vector2(0,0),camera);return ray.intersectObjects(blocks)[0]}
-function say(t){const e=document.querySelector('#msg');e.textContent=t;e.style.display='block';clearTimeout(say.timer);say.timer=setTimeout(()=>e.style.display='none',2400)}
-function update(){for(const [id,v] of [['hp',hp],['food',food]])document.getElementById(id).textContent=Math.round(v);document.querySelector('#hpf').style.width=hp+'%';document.querySelector('#foodf').style.width=food+'%';document.querySelector('#mode').textContent=mode;document.querySelector('#realm').textContent=realm?'Lava Realm':'Overworld';document.querySelector('#chosen').textContent=chosen;document.querySelector('#count').textContent=count;document.querySelector('#switch').textContent=mode==='Creative'?'Switch to Survival':'Switch to Creative';document.querySelector('#realmBtn').textContent=realm?'Return to Overworld':'Visit Lava Realm'}
-function place(){const h=target();if(!h){say('Aim at a block face first.');return}const p=h.object.position.clone().add(h.face.normal);add(Math.round(p.x),Math.round(p.y),Math.round(p.z),chosen);if(mode==='Survival')count=Math.max(0,count-1);else count++;update()}
-function breakBlock(){const h=target();if(!h){say('Aim at a block first.');return}if(h.object.position.y<=-1){say('The base platform is protected.');return}remove(h.object);count++;update()}
-document.querySelector('#kind').onchange=e=>{chosen=e.target.value;update()};document.querySelector('#place').onclick=place;document.querySelector('#break').onclick=breakBlock;
-document.querySelector('#switch').onclick=()=>{mode=mode==='Creative'?'Survival':'Creative';say(mode+' mode enabled.');update()};
-document.querySelector('#eat').onclick=()=>{food=Math.min(100,food+30);hp=Math.min(100,hp+5);say('Snack time!');update()};
-document.querySelector('#realmBtn').onclick=()=>{realm=1-realm;scene.background=new THREE.Color(realm?0x4a244c:0x87b9d7);sun.color.setHex(realm?0xffb17c:0xffffff);grid.material.color.setHex(realm?0x9b5365:0x526a76);say(realm?'Welcome to the Lava Realm!':'Back in the Overworld.');update()};
-document.querySelector('#start').onclick=()=>{document.querySelector('#intro').style.display='none';say('Build with the buttons or use your VR controller.')};
-let yaw=0,pitch=0,drag=false,lx=0,ly=0;renderer.domElement.addEventListener('pointerdown',e=>{if(!renderer.xr.isPresenting){drag=true;lx=e.clientX;ly=e.clientY}});addEventListener('pointerup',()=>drag=false);addEventListener('pointermove',e=>{if(drag&&!renderer.xr.isPresenting){yaw-=(e.clientX-lx)*.004;pitch=Math.max(-1.2,Math.min(1.2,pitch-(e.clientY-ly)*.003));lx=e.clientX;ly=e.clientY;camera.rotation.set(pitch,yaw,0,'YXZ')}});
-addEventListener('keydown',e=>{const d=new THREE.Vector3();camera.getWorldDirection(d);d.y=0;d.normalize();const s=new THREE.Vector3().crossVectors(d,new THREE.Vector3(0,1,0)).normalize();if(e.key==='w')camera.position.addScaledVector(d,.2);if(e.key==='s')camera.position.addScaledVector(d,-.2);if(e.key==='a')camera.position.addScaledVector(s,.2);if(e.key==='d')camera.position.addScaledVector(s,-.2);if(e.key===' ')place();if(e.key==='x')breakBlock()});
-for(let i=0;i<2;i++){const c=renderer.xr.getController(i);c.addEventListener('select',()=>{const rot=new THREE.Matrix4().extractRotation(c.matrixWorld),o=new THREE.Vector3().setFromMatrixPosition(c.matrixWorld),dir=new THREE.Vector3(0,0,-1).applyMatrix4(rot),r=new THREE.Raycaster(o,dir,0,8),hits=r.intersectObjects(blocks);if(hits.length){const p=hits[0].object.position.clone().add(hits[0].face.normal);add(Math.round(p.x),Math.round(p.y),Math.round(p.z),chosen);count++;update()}else say('Point at a block and press trigger.')});scene.add(c)}
-document.querySelector('#vr').onclick=async()=>{try{if(!navigator.xr)throw Error('WebXR is unavailable. Use Quest Browser on HTTPS.');if(!await navigator.xr.isSessionSupported('immersive-ar'))throw Error('This browser/device does not support immersive-ar passthrough.');const s=await navigator.xr.requestSession('immersive-ar',{optionalFeatures:['local-floor','hand-tracking']});await renderer.xr.setSession(s);say('Passthrough started! Point and press trigger to build.')}catch(e){say(e.message||'Could not start VR session.')}};
-let last=performance.now();renderer.setAnimationLoop(now=>{const dt=Math.min(.05,(now-last)/1000);last=now;if(mode==='Survival'){food=Math.max(0,food-dt*.22);if(food===0)hp=Math.max(0,hp-dt*.4)}mobs.forEach(m=>{m.t+=dt;m.g.position.x+=Math.sin(m.t)*dt*.1;m.g.position.z+=Math.cos(m.t*.7)*dt*.1});update();renderer.render(scene,camera)});
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});update();
-</script></body></html>
+import { ARButton } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/webxr/ARButton.js';
+
+const $ = id => document.getElementById(id);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x182434);
+const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.01, 100);
+camera.position.set(0,1.6,4);
+const renderer = new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.xr.enabled = true;
+document.body.appendChild(renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0xddeeff,0x34402e,2));
+const sun = new THREE.DirectionalLight(0xffffff,2.2); sun.position.set(2,5,3); scene.add(sun);
+const floor = new THREE.Mesh(new THREE.CircleGeometry(7,48),new THREE.MeshStandardMaterial({color:0x354657,roughness:1}));
+floor.rotation.x=-Math.PI/2; floor.position.y=0; scene.add(floor);
+const grid = new THREE.GridHelper(14,28,0x6e8a9e,0x41576b); grid.position.y=.012; scene.add(grid);
+
+let gems=0,wave=0,health=100,damage=25,weaponIndex=0,active=false,spawned=0,killed=0;
+let volume=.5, gameOver=false, lastShot=0;
+const zombies=[],shots=[],controllers=[];
+const weapons=[
+ {name:'Pulse Blaster',damage:25,cost:0,color:0x45e6ff},
+ {name:'Burst Blaster',damage:40,cost:120,color:0xffd34e},
+ {name:'Nova Blaster',damage:60,cost:260,color:0xff69d4},
+ {name:'Mega Blaster',damage:100,cost:500,color:0xa88bff}
+];
+function updateHUD(){
+ $('health').textContent=health; $('gems').textContent=gems; $('wave').textContent=wave;
+ $('remaining').textContent=zombies.length; $('weaponName').textContent=weapons[weaponIndex].name;
+ $('damage').textContent=damage;
+}
+function say(msg){
+ $('message').textContent=msg;$('message').style.display='block';
+ clearTimeout(say.timer);say.timer=setTimeout(()=>$('message').style.display='none',1800);
+}
+function makeBlaster(){
+ const g=new THREE.Group();
+ const mat=new THREE.MeshStandardMaterial({color:weapons[weaponIndex].color,metalness:.35,roughness:.35});
+ const body=new THREE.Mesh(new THREE.BoxGeometry(.09,.09,.25),mat); body.position.z=-.12;g.add(body);
+ const barrel=new THREE.Mesh(new THREE.CylinderGeometry(.025,.03,.18,12),mat); barrel.rotation.x=Math.PI/2;barrel.position.z=-.3;g.add(barrel);
+ const grip=new THREE.Mesh(new THREE.BoxGeometry(.055,.12,.065),new THREE.MeshStandardMaterial({color:0x263342}));grip.position.set(0,-.085,-.08);g.add(grip);
+ return g;
+}
+function refreshBlasters(){
+ controllers.forEach(c=>{if(c.userData.blaster)c.remove(c.userData.blaster);c.userData.blaster=makeBlaster();c.add(c.userData.blaster);});
+}
+for(let i=0;i<2;i++){
+ const c=renderer.xr.getController(i);
+ c.addEventListener('selectstart',()=>shootFrom(c));
+ scene.add(c);controllers.push(c);
+}
+function makeZombie(){
+ const group=new THREE.Group();
+ const skin=new THREE.MeshStandardMaterial({color:0x76b66a,roughness:.9});
+ const shirt=new THREE.MeshStandardMaterial({color:0x667f9d});
+ const head=new THREE.Mesh(new THREE.BoxGeometry(.38,.38,.34),skin);head.position.y=1.18;group.add(head);
+ const torso=new THREE.Mesh(new THREE.BoxGeometry(.48,.58,.28),shirt);torso.position.y=.7;group.add(torso);
+ for(let s of [-1,1]){
+  const arm=new THREE.Mesh(new THREE.BoxGeometry(.15,.52,.16),skin);arm.position.set(s*.31,.72,0);arm.rotation.z=s*-.12;group.add(arm);
+  const leg=new THREE.Mesh(new THREE.BoxGeometry(.17,.48,.18),new THREE.MeshStandardMaterial({color:0x43536a}));leg.position.set(s*.13,.24,0);group.add(leg);
+ }
+ const eyeMat=new THREE.MeshBasicMaterial({color:0x17202a});
+ for(let s of [-1,1]){const e=new THREE.Mesh(new THREE.SphereGeometry(.035,8,8),eyeMat);e.position.set(s*.09,1.22,-.176);group.add(e);}
+ const hpBg=new THREE.Mesh(new THREE.PlaneGeometry(.62,.08),new THREE.MeshBasicMaterial({color:0x381b1b,side:THREE.DoubleSide}));
+ hpBg.position.y=1.55;group.add(hpBg);
+ const hpFill=new THREE.Mesh(new THREE.PlaneGeometry(.6,.055),new THREE.MeshBasicMaterial({color:0x65ef80,side:THREE.DoubleSide}));
+ hpFill.position.set(0,1.55,.006);group.add(hpFill);
+ group.userData={hp:100,hpFill,attack:0};
+ const angle=Math.random()*Math.PI*2, radius=3.5+Math.random()*2.5;
+ group.position.set(Math.cos(angle)*radius,0,Math.sin(angle)*radius);
+ scene.add(group);zombies.push(group);
+}
+function startWave(){
+ if(gameOver){resetGame();}
+ if(active)return;
+ active=true;wave++;spawned=0;killed=0;
+ const count=3+wave*2;
+ say('WAVE '+wave+' — HERE THEY COME!');
+ for(let i=0;i<count;i++)setTimeout(()=>{if(active&&!gameOver){makeZombie();spawned++;updateHUD();}},i*650);
+ updateHUD();
+}
+function resetGame(){
+ zombies.forEach(z=>scene.remove(z));zombies.length=0;
+ shots.forEach(s=>scene.remove(s));shots.length=0;
+ health=100;wave=0;gems=0;gameOver=false;active=false;updateHUD();
+}
+function killZombie(z){
+ scene.remove(z);const i=zombies.indexOf(z);if(i>=0)zombies.splice(i,1);
+ gems+=30;killed++;updateHUD();
+ if(active&&zombies.length===0&&spawned>=3+wave*2){
+  active=false;say('WAVE CLEARED! +30 GEMS PER ZOMBIE');
+ }
+}
+function fire(origin,direction){
+ if(!active){say('Press START GAME first');return;}
+ const now=performance.now();if(now-lastShot<250)return;lastShot=now;
+ const mat=new THREE.MeshBasicMaterial({color:weapons[weaponIndex].color});
+ const bolt=new THREE.Mesh(new THREE.SphereGeometry(.035,8,8),mat);
+ bolt.position.copy(origin);bolt.userData={dir:direction.clone(),life:1.2};scene.add(bolt);shots.push(bolt);
+}
+function shootFrom(controller){
+ const origin=new THREE.Vector3(),dir=new THREE.Vector3(0,0,-1);
+ controller.getWorldPosition(origin);dir.applyQuaternion(controller.getWorldQuaternion(new THREE.Quaternion())).normalize();
+ fire(origin,dir);
+ if($('haptics').checked){try{const gp=controller.gamepad;if(gp?.hapticActuators?.[0])gp.hapticActuators[0].pulse(.25,45);}catch(e){}}
+}
+addEventListener('click',e=>{
+ if(e.target.closest('button')||e.target.closest('#card')||renderer.xr.isPresenting)return;
+ const origin=camera.getWorldPosition(new THREE.Vector3());
+ const dir=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion).normalize();fire(origin,dir);
+});
+const keys={};addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true);addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+function update(dt){
+ if(!renderer.xr.isPresenting){
+  const speed=2.2*dt;
+  if(keys.w)camera.position.z-=speed;if(keys.s)camera.position.z+=speed;
+  if(keys.a)camera.position.x-=speed;if(keys.d)camera.position.x+=speed;
+ }
+ for(let i=shots.length-1;i>=0;i--){
+  const s=shots[i];s.position.addScaledVector(s.userData.dir,dt*13);s.userData.life-=dt;
+  let hit=false;
+  for(const z of [...zombies]){
+   const target=z.position.clone().add(new THREE.Vector3(0,.85,0));
+   if(s.position.distanceTo(target)<.42){
+    z.userData.hp-=damage;z.userData.hpFill.scale.x=Math.max(0,z.userData.hp/100);
+    z.userData.hpFill.position.x=-(1-z.userData.hp/100)*.3;
+    if(z.userData.hp<=0)killZombie(z);
+    hit=true;break;
+   }
+  }
+  if(hit||s.userData.life<=0){scene.remove(s);shots.splice(i,1);}
+ }
+ if(active){
+  for(const z of zombies){
+   const p=renderer.xr.isPresenting?camera.getWorldPosition(new THREE.Vector3()):new THREE.Vector3(camera.position.x,0,camera.position.z);
+   const delta=p.clone().sub(z.position);delta.y=0;
+   const dist=delta.length();
+   if(dist>1.0){delta.normalize();z.position.addScaledVector(delta,dt*(.22+wave*.025));z.lookAt(p.x,0,p.z);}
+   else{
+    z.userData.attack+=dt;
+    if(z.userData.attack>1.5){health=Math.max(0,health-5);z.userData.attack=0;updateHUD();if(health<=0){active=false;gameOver=true;say('GAME OVER — press START to try again');}}
+   }
+  }
+ }
+ updateHUD();
+}
+let prev=performance.now();
+renderer.setAnimationLoop(()=>{
+ const now=performance.now(),dt=Math.min(.05,(now-prev)/1000);prev=now;update(dt);renderer.render(scene,camera);
+});
+function refreshShop(){
+ $('shopItems').innerHTML='';
+ weapons.forEach((w,i)=>{
+  const div=document.createElement('div');div.className='shopitem';
+  const info=document.createElement('div');info.innerHTML='<b>'+w.name+'</b><div class="muted">'+w.damage+' damage · '+(i===0?'FREE':w.cost+' gems')+'</div>';
+  const btn=document.createElement('button');btn.textContent=i===weaponIndex?'EQUIPPED':i===0?'EQUIP':'BUY / EQUIP';
+  btn.disabled=i===weaponIndex||(i>0&&gems<w.cost&&weaponIndex!==i);
+  btn.addEventListener('click',()=>{
+   if(i>0&&gems<w.cost){say('Not enough gems');return;}
+   if(i>0&&btn.textContent!=='EQUIP'){gems-=w.cost;}
+   weaponIndex=i;damage=w.damage;refreshBlasters();refreshShop();updateHUD();
+  });
+  div.append(info,btn);$('shopItems').append(div);
+ });
+}
+$('start').onclick=()=>{if(gameOver)resetGame();startWave();$('panel').classList.add('hidden');$('gameControls').classList.remove('hidden');};
+$('nextWave').onclick=()=>{if(!active){startWave();}else{say('Finish this wave first!');}};
+$('gameShop').onclick=()=>{$('panel').classList.remove('hidden');$('shop').classList.remove('hidden');$('settings').classList.add('hidden');refreshShop();};
+$('gameSettings').onclick=()=>{$('panel').classList.remove('hidden');$('settings').classList.remove('hidden');$('shop').classList.add('hidden');};
+$('openShop').onclick=()=>{$('shop').classList.remove('hidden');$('settings').classList.add('hidden');refreshShop();};
+$('closeShop').onclick=()=>{ $('shop').classList.add('hidden'); if(wave>0&&!gameOver)$('panel').classList.add('hidden'); };
+$('openSettings').onclick=()=>{$('settings').classList.remove('hidden');$('shop').classList.add('hidden');};
+$('closeSettings').onclick=()=>{ $('settings').classList.add('hidden'); if(wave>0&&!gameOver)$('panel').classList.add('hidden'); };
+$('volume').oninput=e=>{$('volText').textContent=e.target.value+'%';volume=Number(e.target.value)/100;};
+$('showHints').onchange=e=>$('hint').classList.toggle('hidden',!e.target.checked);
+$('enterVR').onclick=async()=>{
+ try{
+  if(!navigator.xr){say('WebXR is not available in this browser');return;}
+  const supported=await navigator.xr.isSessionSupported('immersive-ar');
+  if(!supported){say('Passthrough AR is not supported here');return;}
+  const button=ARButton.createButton(renderer,{requiredFeatures:['local-floor'],optionalFeatures:['hand-tracking','dom-overlay'],domOverlay:{root:document.body}});
+  button.click();
+  $('panel').classList.add('hidden');
+ }catch(err){say('Could not start passthrough: '+err.message);}
+};
+refreshBlasters();refreshShop();updateHUD();
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+</script>
+</body>
+</html>
