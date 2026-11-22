@@ -1,289 +1,47 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Passthrough Creator VR</title>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Blockverse VR</title>
 <style>
-  :root { color-scheme: dark; }
-  * { box-sizing: border-box; }
-  body { margin:0; overflow:hidden; font:14px system-ui, sans-serif; background:#111; color:white; }
-  #panel {
-    position:fixed; z-index:5; top:10px; left:10px; width:min(310px,calc(100vw - 20px));
-    max-height:calc(100dvh - 20px); overflow:auto; padding:12px; border-radius:14px;
-    background:#171a20ed; border:1px solid #ffffff30; backdrop-filter:blur(12px);
-  }
-  h1 { font-size:18px; margin:0 0 8px; }
-  p { margin:6px 0 10px; color:#c9d0dc; line-height:1.35; }
-  .row { display:flex; flex-wrap:wrap; gap:6px; margin:7px 0; }
-  button, select, input {
-    color:white; background:#303846; border:1px solid #667386; border-radius:8px;
-    padding:9px 10px; font:inherit;
-  }
-  button { cursor:pointer; }
-  button.primary { background:#1769d2; border-color:#6ba8ff; }
-  button:disabled { opacity:.45; cursor:not-allowed; }
-  #status { font-size:12px; color:#9ed5ff; min-height:18px; }
-  #hint { font-size:12px; }
-  #hide { float:right; padding:4px 8px; }
-  #mini { display:none; position:fixed;z-index:6;top:10px;left:10px; }
-  #overlay { position:fixed; inset:0; pointer-events:none; z-index:4; }
-  #overlay > * { pointer-events:auto; }
-  #objects { font-size:12px; color:#d8e0ee; }
-  .small { font-size:12px; }
-</style>
-</head>
-<body>
-<div id="overlay">
-  <section id="panel">
-    <button id="hide">Hide</button>
-    <h1>🧩 Passthrough Creator</h1>
-    <p>Build little mixed-reality scenes in your room. Enter AR to see the real world behind your creations.</p>
-    <div class="row"><button id="enter" class="primary">Enter Passthrough</button><button id="exit" disabled>Exit</button></div>
-    <div class="row">
-      <button data-shape="box">＋ Box</button><button data-shape="sphere">＋ Sphere</button>
-      <button data-shape="cone">＋ Cone</button><button data-shape="torus">＋ Ring</button>
-    </div>
-    <div class="row">
-      <button id="group">Group selected</button><button id="ungroup">Ungroup</button>
-      <button id="delete">Delete</button>
-    </div>
-    <div class="row">
-      <button id="record" class="primary">● Record animation</button>
-      <button id="play">▶ Play</button><button id="stop">■ Stop</button>
-    </div>
-    <div class="row">
-      <button id="keyframe">＋ Add keyframe</button>
-      <button id="reset">Reset scene</button>
-    </div>
-    <div id="objects">Objects: 0 · Selected: none</div>
-    <div id="status">Ready. Use a Quest browser with WebXR support.</div>
-    <p id="hint">Controls: Point and hold trigger to grab/move. With hand tracking, pinch thumb + index to grab. Select objects one by one, then Group selected. Add keyframes while recording to animate.</p>
-    <p class="small">Tip: the editor panel can be hidden while building.</p>
-  </section>
-  <button id="mini">Open editor</button>
-</div>
+*{box-sizing:border-box}body{margin:0;overflow:hidden;background:#13202b;color:white;font:15px system-ui}#game{position:fixed;inset:0}
+#hud{position:fixed;top:10px;left:10px;display:flex;gap:8px;flex-wrap:wrap;pointer-events:none}.panel{background:#101820dd;border:1px solid #ffffff40;border-radius:12px;padding:9px 12px;pointer-events:auto}
+.bar{height:9px;width:140px;background:#333;border-radius:9px;overflow:hidden;margin:4px 0 7px}.fill{height:100%;width:100%;background:#4c6}#hungerFill{background:#e7a83e}
+#toolbar{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:6px;flex-wrap:wrap;justify-content:center;width:96%}
+button,select{background:#263746;color:white;border:1px solid #ffffff55;border-radius:10px;padding:10px;font:inherit;min-height:42px}
+.primary{background:#176b50}#msg{position:fixed;top:100px;left:50%;transform:translateX(-50%);background:#101820dd;padding:8px 12px;border-radius:10px}
+#intro{position:fixed;inset:0;background:#07111deF;display:grid;place-items:center;padding:20px;text-align:center}
+.card{max-width:500px;background:#172635;border:1px solid #ffffff40;border-radius:18px;padding:24px}.small{font-size:12px;opacity:.8}
+</style></head><body><div id="game"></div>
+<div id="hud"><div class="panel"><b>❤️ Health</b> <span id="hp">100</span><div class="bar"><div id="hpf" class="fill"></div></div><b>🍗 Hunger</b> <span id="food">100</span><div class="bar"><div id="foodf" class="fill" style="background:#e7a83e"></div></div><span class="small"><span id="mode">Creative</span> · <span id="realm">Overworld</span></span></div><div class="panel">🎒 <span id="chosen">Grass</span><br><span class="small">Blocks: <span id="count">24</span></span></div></div>
+<div id="msg">Welcome to Blockverse! Build a world around you.</div>
+<div id="toolbar"><select id="kind"><option value="grass">🌱 Grass</option><option value="dirt">🟫 Dirt</option><option value="stone">🪨 Stone</option><option value="wood">🪵 Wood</option><option value="leaves">🌿 Leaves</option><option value="sand">🟨 Sand</option><option value="glass">🔷 Glass</option><option value="glow">✨ Glow</option></select><button id="place" class="primary">＋ Place</button><button id="break">－ Break</button><button id="switch">Switch to Survival</button><button id="eat">Eat 🍎</button><button id="realmBtn">Visit Lava Realm</button><button id="vr" class="primary">Enter VR / Passthrough</button></div>
+<div id="intro"><div class="card"><h1>🧱 BLOCKVERSE VR</h1><p>Passthrough voxel building adventure.</p><p class="small">Original block-building prototype with a survival HUD, roaming friendly creatures and another realm. WebXR passthrough needs a compatible headset/browser and HTTPS.</p><button id="start" class="primary">Start Building</button></div></div>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.01, 50);
-camera.position.set(0, 1.55, 2.4);
-const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight);
-renderer.xr.enabled = true;
-renderer.xr.setReferenceSpaceType('local-floor');
-renderer.setClearColor(0x000000, 0);
-document.body.appendChild(renderer.domElement);
-
-scene.add(new THREE.HemisphereLight(0xffffff, 0x526078, 1.7));
-const light = new THREE.DirectionalLight(0xffffff, 1.5);
-light.position.set(1, 3, 2); scene.add(light);
-
-const floorGrid = new THREE.GridHelper(8, 32, 0x7790a8, 0x46576b);
-floorGrid.position.y = 0;
-floorGrid.material.transparent = true;
-floorGrid.material.opacity = 0.35;
-scene.add(floorGrid);
-
-const objects = [];
-const selected = new Set();
-const groups = [];
-const raycaster = new THREE.Raycaster();
-const tempMatrix = new THREE.Matrix4();
-const controllers = [];
-let xrSession = null, held = null, heldBy = null, grabOffset = new THREE.Vector3();
-let recording = false, playing = false, recordStart = 0;
-const tracks = new Map();
-
-const $ = id => document.getElementById(id);
-function status(msg) { $('status').textContent = msg; }
-function refreshList() {
-  $('objects').textContent = `Objects: ${objects.length} · Selected: ${selected.size ? [...selected].map(o=>objects.indexOf(o)+1).join(', ') : 'none'}`;
-}
-function material() {
-  const colors = [0x47a7ff,0xff735c,0xffd45c,0x83e08a,0xc58cff,0xff8fce];
-  return new THREE.MeshStandardMaterial({color:colors[Math.floor(Math.random()*colors.length)], roughness:.45, metalness:.08});
-}
-function addShape(type) {
-  let geometry;
-  if(type==='sphere') geometry=new THREE.SphereGeometry(.13,24,16);
-  else if(type==='cone') geometry=new THREE.ConeGeometry(.13,.26,24);
-  else if(type==='torus') geometry=new THREE.TorusGeometry(.12,.035,12,28);
-  else geometry=new THREE.BoxGeometry(.22,.22,.22);
-  const mesh=new THREE.Mesh(geometry,material());
-  mesh.position.set((Math.random()-.5)*.35, 1.15+Math.random()*.25, -.65-Math.random()*.3);
-  mesh.userData.baseScale=mesh.scale.clone();
-  mesh.userData.kind=type;
-  mesh.userData.groupId=null;
-  scene.add(mesh); objects.push(mesh); refreshList(); select(mesh);
-}
-function select(obj, additive=true) {
-  if(!additive) selected.clear();
-  if(selected.has(obj)) selected.delete(obj); else selected.add(obj);
-  objects.forEach(o=>{ o.material.emissive.setHex(selected.has(o)?0x253b60:0x000000); });
-  refreshList();
-}
-function pick(ray) {
-  const hits=raycaster.intersectObjects(objects,false);
-  return hits.length ? hits[0].object : null;
-}
-function getRay(controller) {
-  tempMatrix.identity().extractRotation(controller.matrixWorld);
-  raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
-  raycaster.ray.direction.set(0,0,-1).applyMatrix4(tempMatrix);
-}
-function beginGrab(obj, origin) {
-  if(!obj) return;
-  if(!selected.has(obj)) { selected.clear(); selected.add(obj); selectVisuals(); }
-  held=obj; heldBy=origin;
-  const p = new THREE.Vector3(); origin.getWorldPosition(p);
-  grabOffset.copy(obj.position).sub(p);
-}
-function selectVisuals() {
-  objects.forEach(o=>o.material.emissive.setHex(selected.has(o)?0x253b60:0x000000));
-  refreshList();
-}
-function moveHeld(origin) {
-  if(!held) return;
-  const p=new THREE.Vector3(); origin.getWorldPosition(p);
-  held.position.copy(p.add(grabOffset));
-}
-function endGrab(){held=null;heldBy=null;}
-
-function makeController(i) {
-  const c=renderer.xr.getController(i);
-  scene.add(c);
-  const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3(0,0,-2)]),
-    new THREE.LineBasicMaterial({color:0x66ccff}));
-  c.add(line);
-  c.addEventListener('selectstart',()=>{
-    getRay(c); const hit=pick(raycaster.ray);
-    if(hit) beginGrab(hit,c);
-    else { raycaster.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),-1.1),new THREE.Vector3()); }
-  });
-  c.addEventListener('selectend',endGrab);
-  c.addEventListener('squeezestart',()=>{
-    getRay(c); const hit=pick(raycaster.ray);
-    if(hit) select(hit,true);
-  });
-  controllers.push(c);
-}
-makeController(0); makeController(1);
-
-// Hand tracking: draw simple fingertip markers and use thumb/index pinch to grab.
-const handTips=[];
-function makeHand(i) {
-  const h=renderer.xr.getHand(i); scene.add(h);
-  const tip=new THREE.Mesh(new THREE.SphereGeometry(.018,12,10),new THREE.MeshBasicMaterial({color:0xffdf66}));
-  scene.add(tip); handTips.push({hand:h,tip,active:false});
-}
-makeHand(0); makeHand(1);
-function updateHands() {
-  for(const item of handTips) {
-    const hand=item.hand;
-    const thumb=hand.getObjectByName('thumb-tip');
-    const index=hand.getObjectByName('index-finger-tip');
-    if(!thumb || !index) continue;
-    item.tip.position.copy(index.getWorldPosition(new THREE.Vector3()));
-    const a=thumb.getWorldPosition(new THREE.Vector3()), b=index.getWorldPosition(new THREE.Vector3());
-    const pinch=a.distanceTo(b)<.035;
-    if(pinch && !item.active) {
-      const origin=new THREE.Object3D(); origin.position.copy(b); scene.add(origin);
-      raycaster.set(b,new THREE.Vector3(0,0,-1));
-      const hit=pick(raycaster.ray);
-      if(hit) beginGrab(hit,origin);
-      item.origin=origin; item.active=true;
-    } else if(pinch && item.active && held && heldBy===item.origin) {
-      item.origin.position.copy(b); moveHeld(item.origin);
-    } else if(!pinch && item.active) {
-      if(heldBy===item.origin) endGrab();
-      scene.remove(item.origin); item.active=false; item.origin=null;
-    }
-  }
-}
-
-function makeGroup() {
-  if(selected.size<2){status('Select at least two objects to group.');return;}
-  const group=new THREE.Group(); scene.add(group);
-  const center=new THREE.Vector3();
-  selected.forEach(o=>center.add(o.position)); center.divideScalar(selected.size);
-  group.position.copy(center);
-  const members=[...selected];
-  members.forEach(o=>{scene.remove(o); group.add(o); o.position.sub(center);});
-  groups.push(group); selected.clear(); members.forEach(o=>selected.add(o)); selectVisuals();
-  status(`Grouped ${members.length} objects. Grab any member to move the group.`);
-}
-function ungroup() {
-  const parents=new Set([...selected].map(o=>o.parent).filter(p=>p.isGroup));
-  parents.forEach(g=>{
-    [...g.children].forEach(o=>{const world=o.getWorldPosition(new THREE.Vector3());scene.add(o);o.position.copy(world);});
-    scene.remove(g);
-  });
-  status('Ungrouped selected objects.');
-}
-function addKeyframe() {
-  if(!recording){status('Press Record animation first.');return;}
-  const t=(performance.now()-recordStart)/1000;
-  selected.forEach(o=>{
-    if(!tracks.has(o)) tracks.set(o,[]);
-    tracks.get(o).push({t,p:o.position.clone(),q:o.quaternion.clone(),s:o.scale.clone()});
-  });
-  status(`Keyframe added at ${t.toFixed(1)}s.`);
-}
-function playAnimation() {
-  const duration=Math.max(1,...[...tracks.values()].flat().map(k=>k.t));
-  playing=true; recordStart=performance.now(); status('Playing animation…');
-  function tick(){
-    if(!playing)return;
-    const t=((performance.now()-recordStart)/1000)%duration;
-    for(const [o,keys] of tracks) {
-      if(keys.length<2) continue;
-      const sorted=[...keys].sort((a,b)=>a.t-b.t);
-      let a=sorted[0],b=sorted[sorted.length-1];
-      for(let i=0;i<sorted.length-1;i++) if(t>=sorted[i].t && t<=sorted[i+1].t){a=sorted[i];b=sorted[i+1];break;}
-      const span=Math.max(.001,b.t-a.t),u=THREE.MathUtils.clamp((t-a.t)/span,0,1);
-      o.position.lerpVectors(a.p,b.p,u); o.quaternion.slerpQuaternions(a.q,b.q,u); o.scale.lerpVectors(a.s,b.s,u);
-    }
-    requestAnimationFrame(tick);
-  } tick();
-}
-$('record').onclick=()=>{recording=true;playing=false;recordStart=performance.now();tracks.clear();status('Recording: move objects, then add keyframes.');};
-$('keyframe').onclick=addKeyframe;
-$('play').onclick=playAnimation;
-$('stop').onclick=()=>{playing=false;recording=false;status('Animation stopped.');};
-$('group').onclick=makeGroup; $('ungroup').onclick=ungroup;
-$('delete').onclick=()=>{selected.forEach(o=>{scene.remove(o);const i=objects.indexOf(o);if(i>=0)objects.splice(i,1);tracks.delete(o);});selected.clear();refreshList();status('Deleted selected objects.');};
-$('reset').onclick=()=>{objects.forEach(o=>scene.remove(o));objects.length=0;selected.clear();groups.forEach(g=>scene.remove(g));groups.length=0;tracks.clear();refreshList();status('Scene cleared.');};
-document.querySelectorAll('[data-shape]').forEach(b=>b.onclick=()=>addShape(b.dataset.shape));
-$('hide').onclick=()=>{$('panel').style.display='none';$('mini').style.display='block';};
-$('mini').onclick=()=>{$('panel').style.display='block';$('mini').style.display='none';};
-
-$('enter').onclick=async()=>{
-  if(!navigator.xr){status('WebXR is not available in this browser.');return;}
-  try{
-    const supported=await navigator.xr.isSessionSupported('immersive-ar');
-    if(!supported){status('Passthrough AR is not supported here. Try Meta Quest Browser on Quest 3/3S.');return;}
-    xrSession=await navigator.xr.requestSession('immersive-ar',{
-      requiredFeatures:['local-floor'],
-      optionalFeatures:['hand-tracking','dom-overlay'],
-      domOverlay:{root:document.getElementById('overlay')}
-    });
-    await renderer.xr.setSession(xrSession);
-    $('enter').disabled=true;$('exit').disabled=false;
-    xrSession.addEventListener('end',()=>{$('enter').disabled=false;$('exit').disabled=true;xrSession=null;status('Exited passthrough.');});
-    status('Passthrough started! Add objects and grab them.');
-  }catch(e){status('Could not start AR: '+e.message+'. Open this page over HTTPS in Quest Browser.');}
-};
-$('exit').onclick=()=>xrSession?.end();
-
-renderer.setAnimationLoop(()=>{
-  updateHands();
-  if(held && heldBy && heldBy.isObject3D && !handTips.some(x=>x.origin===heldBy)) moveHeld(heldBy);
-  renderer.render(scene,camera);
-});
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
-</script>
-</body>
-</html>
+const root=document.querySelector('#game'),scene=new THREE.Scene();scene.background=new THREE.Color(0x87b9d7);
+const camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,.05,100);camera.position.set(0,1.6,5);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.xr.enabled=true;renderer.xr.setReferenceSpaceType('local-floor');root.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xffffff,0x66715c,2));const sun=new THREE.DirectionalLight(0xffffff,1.5);sun.position.set(4,9,5);scene.add(sun);
+const colors={grass:0x62a84f,dirt:0x8b5a35,stone:0x888d96,wood:0x9b693b,leaves:0x347c45,sand:0xd9c17b,glass:0x73c9df,glow:0xc4a7ff};
+const geo=new THREE.BoxGeometry(1,1,1),blocks=[];let chosen='grass',mode='Creative',realm=0,hp=100,food=100,count=24;
+function add(x,y,z,k){const m=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:colors[k],transparent:k==='glass',opacity:k==='glass'?.5:1,emissive:k==='glow'?0x514080:0}));m.position.set(x,y,z);m.userData.block=true;scene.add(m);blocks.push(m);return m}
+function remove(m){scene.remove(m);const i=blocks.indexOf(m);if(i>=0)blocks.splice(i,1)}
+for(let x=-4;x<=4;x++)for(let z=-4;z<=2;z++)add(x,-1,z,(x+z)%4===0?'dirt':'grass');
+for(const [x,z] of [[-3,-2],[3,-1]]){for(let y=0;y<3;y++)add(x,y,z,'wood');for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++)for(let y=2;y<=3;y++)add(x+dx,y,z+dz,'leaves')}
+const grid=new THREE.GridHelper(40,40,0x526a76,0x526a76);grid.position.y=-.49;scene.add(grid);
+const mobs=[];function mob(x,z,c){const g=new THREE.Group(),b=new THREE.Mesh(new THREE.BoxGeometry(.65,.65,.65),new THREE.MeshStandardMaterial({color:c}));g.add(b);g.position.set(x,-.15,z);scene.add(g);mobs.push({g,t:Math.random()*6})}mob(-2,1,0xe7d27b);mob(2,-3,0x9ad5e8);mob(0,-2,0xc6a4e8);
+const ray=new THREE.Raycaster();function target(){ray.setFromCamera(new THREE.Vector2(0,0),camera);return ray.intersectObjects(blocks)[0]}
+function say(t){const e=document.querySelector('#msg');e.textContent=t;e.style.display='block';clearTimeout(say.timer);say.timer=setTimeout(()=>e.style.display='none',2400)}
+function update(){for(const [id,v] of [['hp',hp],['food',food]])document.getElementById(id).textContent=Math.round(v);document.querySelector('#hpf').style.width=hp+'%';document.querySelector('#foodf').style.width=food+'%';document.querySelector('#mode').textContent=mode;document.querySelector('#realm').textContent=realm?'Lava Realm':'Overworld';document.querySelector('#chosen').textContent=chosen;document.querySelector('#count').textContent=count;document.querySelector('#switch').textContent=mode==='Creative'?'Switch to Survival':'Switch to Creative';document.querySelector('#realmBtn').textContent=realm?'Return to Overworld':'Visit Lava Realm'}
+function place(){const h=target();if(!h){say('Aim at a block face first.');return}const p=h.object.position.clone().add(h.face.normal);add(Math.round(p.x),Math.round(p.y),Math.round(p.z),chosen);if(mode==='Survival')count=Math.max(0,count-1);else count++;update()}
+function breakBlock(){const h=target();if(!h){say('Aim at a block first.');return}if(h.object.position.y<=-1){say('The base platform is protected.');return}remove(h.object);count++;update()}
+document.querySelector('#kind').onchange=e=>{chosen=e.target.value;update()};document.querySelector('#place').onclick=place;document.querySelector('#break').onclick=breakBlock;
+document.querySelector('#switch').onclick=()=>{mode=mode==='Creative'?'Survival':'Creative';say(mode+' mode enabled.');update()};
+document.querySelector('#eat').onclick=()=>{food=Math.min(100,food+30);hp=Math.min(100,hp+5);say('Snack time!');update()};
+document.querySelector('#realmBtn').onclick=()=>{realm=1-realm;scene.background=new THREE.Color(realm?0x4a244c:0x87b9d7);sun.color.setHex(realm?0xffb17c:0xffffff);grid.material.color.setHex(realm?0x9b5365:0x526a76);say(realm?'Welcome to the Lava Realm!':'Back in the Overworld.');update()};
+document.querySelector('#start').onclick=()=>{document.querySelector('#intro').style.display='none';say('Build with the buttons or use your VR controller.')};
+let yaw=0,pitch=0,drag=false,lx=0,ly=0;renderer.domElement.addEventListener('pointerdown',e=>{if(!renderer.xr.isPresenting){drag=true;lx=e.clientX;ly=e.clientY}});addEventListener('pointerup',()=>drag=false);addEventListener('pointermove',e=>{if(drag&&!renderer.xr.isPresenting){yaw-=(e.clientX-lx)*.004;pitch=Math.max(-1.2,Math.min(1.2,pitch-(e.clientY-ly)*.003));lx=e.clientX;ly=e.clientY;camera.rotation.set(pitch,yaw,0,'YXZ')}});
+addEventListener('keydown',e=>{const d=new THREE.Vector3();camera.getWorldDirection(d);d.y=0;d.normalize();const s=new THREE.Vector3().crossVectors(d,new THREE.Vector3(0,1,0)).normalize();if(e.key==='w')camera.position.addScaledVector(d,.2);if(e.key==='s')camera.position.addScaledVector(d,-.2);if(e.key==='a')camera.position.addScaledVector(s,.2);if(e.key==='d')camera.position.addScaledVector(s,-.2);if(e.key===' ')place();if(e.key==='x')breakBlock()});
+for(let i=0;i<2;i++){const c=renderer.xr.getController(i);c.addEventListener('select',()=>{const rot=new THREE.Matrix4().extractRotation(c.matrixWorld),o=new THREE.Vector3().setFromMatrixPosition(c.matrixWorld),dir=new THREE.Vector3(0,0,-1).applyMatrix4(rot),r=new THREE.Raycaster(o,dir,0,8),hits=r.intersectObjects(blocks);if(hits.length){const p=hits[0].object.position.clone().add(hits[0].face.normal);add(Math.round(p.x),Math.round(p.y),Math.round(p.z),chosen);count++;update()}else say('Point at a block and press trigger.')});scene.add(c)}
+document.querySelector('#vr').onclick=async()=>{try{if(!navigator.xr)throw Error('WebXR is unavailable. Use Quest Browser on HTTPS.');if(!await navigator.xr.isSessionSupported('immersive-ar'))throw Error('This browser/device does not support immersive-ar passthrough.');const s=await navigator.xr.requestSession('immersive-ar',{optionalFeatures:['local-floor','hand-tracking']});await renderer.xr.setSession(s);say('Passthrough started! Point and press trigger to build.')}catch(e){say(e.message||'Could not start VR session.')}};
+let last=performance.now();renderer.setAnimationLoop(now=>{const dt=Math.min(.05,(now-last)/1000);last=now;if(mode==='Survival'){food=Math.max(0,food-dt*.22);if(food===0)hp=Math.max(0,hp-dt*.4)}mobs.forEach(m=>{m.t+=dt;m.g.position.x+=Math.sin(m.t)*dt*.1;m.g.position.z+=Math.cos(m.t*.7)*dt*.1});update();renderer.render(scene,camera)});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});update();
+</script></body></html>
